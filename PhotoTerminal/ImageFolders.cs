@@ -10,8 +10,8 @@ using System.Windows.Forms;
 
 namespace PhotoTerminal
 {
-    class ImageFolders
-    {
+        partial class ImageFolders : FormMain
+        {
         List<string> neededFolders = new List<string>();
         //List<List<string>> imagesInFolder = new List<List<string>>();
         FlowLayoutPanel layoutPanel;
@@ -54,10 +54,13 @@ namespace PhotoTerminal
                 {
                     emptyFolder = false;
 
-                    Directory.CreateDirectory("snapshot");
-                    Directory.CreateDirectory("snapshot\\" + sDir.Split(Path.DirectorySeparatorChar).Last());
-                    string photoInSnapshot = "snapshot\\" + sDir.Split(Path.DirectorySeparatorChar).Last() + "\\" + Path.GetFileName(fileName);
-                    File.Copy(fileName, photoInSnapshot, true);
+                    if (!Directory.Exists("snapshot"))
+                    {
+                        Directory.CreateDirectory("snapshot");
+                        Directory.CreateDirectory("snapshot\\" + sDir.Split(Path.DirectorySeparatorChar).Last());
+                        string photoInSnapshot = "snapshot\\" + sDir.Split(Path.DirectorySeparatorChar).Last() + "\\" + Path.GetFileName(fileName);
+                        File.Copy(fileName, photoInSnapshot, true);
+                    }
 
                     //listImg.Add(photoInSnapshot);
 
@@ -139,6 +142,7 @@ namespace PhotoTerminal
             layoutPanel.Controls.Clear();
             FolderImages folderImages = new FolderImages(formMain, layoutPanel);
             folderImages.showImages(((PictureBox)sender).Tag.ToString());
+            this.Dispose();
         }
     }
 }

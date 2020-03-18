@@ -37,6 +37,7 @@
             this.buttonDoOrder = new System.Windows.Forms.Button();
             this.buttonBack = new System.Windows.Forms.Button();
             this.flowLayoutPanelImageSizes = new System.Windows.Forms.FlowLayoutPanel();
+            this.progressBarUpload = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // buttonGlanPaper
@@ -123,6 +124,7 @@
             this.buttonDoOrder.Text = "Оформить заказ";
             this.buttonDoOrder.UseVisualStyleBackColor = true;
             this.buttonDoOrder.Visible = false;
+            this.buttonDoOrder.Click += new System.EventHandler(this.buttonDoOrder_Click);
             // 
             // buttonBack
             // 
@@ -143,11 +145,19 @@
             this.flowLayoutPanelImageSizes.Size = new System.Drawing.Size(450, 705);
             this.flowLayoutPanelImageSizes.TabIndex = 8;
             // 
+            // progressBarUpload
+            // 
+            this.progressBarUpload.Location = new System.Drawing.Point(0, 720);
+            this.progressBarUpload.Name = "progressBarUpload";
+            this.progressBarUpload.Size = new System.Drawing.Size(1009, 20);
+            this.progressBarUpload.TabIndex = 10;
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1008, 729);
+            this.Controls.Add(this.progressBarUpload);
             this.Controls.Add(this.buttonBack);
             this.Controls.Add(this.buttonDoOrder);
             this.Controls.Add(this.labelPaperType);
@@ -168,13 +178,14 @@
 
         private System.Windows.Forms.Button buttonGlanPaper;
         private System.Windows.Forms.Button buttonMatPaper;
-        private System.Windows.Forms.Button buttonCancelOrder;
         private System.Windows.Forms.Label labelPaperType;
         public System.Windows.Forms.Button buttonSelAll;
         public System.Windows.Forms.Button buttonDeSelAll;
         public System.Windows.Forms.Button buttonDoOrder;
         public System.Windows.Forms.Button buttonBack;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelImageSizes;
+        public System.Windows.Forms.Button buttonCancelOrder;
+        private System.Windows.Forms.ProgressBar progressBarUpload;
     }
 }
 

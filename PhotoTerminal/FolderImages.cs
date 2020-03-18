@@ -23,6 +23,16 @@ namespace PhotoTerminal
             {
                 file.WriteLine("selected_images");
             }
+            Button buttonBack = (Button)formMain.Controls.Find("buttonBack", true)[0];
+            buttonBack.Click += ButtonBack_Click;
+        }
+
+        private void ButtonBack_Click(object sender, EventArgs e)
+        {
+            imagesInFolder.Clear();
+            layoutPanel.Controls.Clear();
+            ImageFolders imageFolders = new ImageFolders(formMain, "snapshot");
+            this.Dispose();
         }
 
         private void ButtonSelAll_Click(object sender, System.EventArgs e)
