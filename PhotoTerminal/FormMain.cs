@@ -205,29 +205,21 @@ namespace PhotoTerminal
         }
 
         private void PrintTextFileHandler(object sender, PrintPageEventArgs ppeArgs)
-        {
-            //Get the Graphics object  
+        { 
             Graphics g = ppeArgs.Graphics;
             float linesPerPage = 0;
             float yPos = 0;
             int count = 0;
-            //Read margins from PrintPageEventArgs  
             float leftMargin = ppeArgs.MarginBounds.Left;
             float topMargin = ppeArgs.MarginBounds.Top;
             string line = null;
-            //Calculate the lines per page on the basis of the height of the page and the height of the font  
             linesPerPage = ppeArgs.MarginBounds.Height / verdana10Font.GetHeight(g);
-            //Now read lines one by one, using StreamReader  
             while (count < linesPerPage && ((line = reader.ReadLine()) != null))
             {
-                //Calculate the starting position  
                 yPos = topMargin + (count * verdana10Font.GetHeight(g));
-                //Draw text  
                 g.DrawString(line, verdana10Font, Brushes.Black, leftMargin, yPos, new StringFormat());
-                //Move to next line  
                 count++;
             }
-            //If PrintPageEventArgs has more pages to print  
             if (line != null)
             {
                 ppeArgs.HasMorePages = true;
