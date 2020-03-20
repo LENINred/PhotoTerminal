@@ -75,7 +75,7 @@ namespace PhotoTerminal
             buttonGlanPaper.Visible = false;
             buttonMatPaper.Visible = false;
             labelPaperType.Visible = false;
-            showPaperSizesList();
+            loadPaperSizes();
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"snapshot.txt"))
             {
                 file.WriteLine("paper_type");
@@ -88,7 +88,7 @@ namespace PhotoTerminal
             buttonGlanPaper.Visible = false;
             buttonMatPaper.Visible = false;
             labelPaperType.Visible = false;
-            showPaperSizesList();
+            loadPaperSizes();
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"snapshot.txt"))
             {
                 file.WriteLine("paper_type");
@@ -97,20 +97,32 @@ namespace PhotoTerminal
         }
 
         List<int[]> paperSizes = new List<int[]>();
+        private void loadPaperSizes()
+        {
+            DataTable tblOrders = new DataTable();
+            using (var mySqlConnection = new DBUtils().getDBConnection())
+            {
+                mySqlConnection.Open();
+                using (var cmd = new MySqlCommand("get_paper_sizes", mySqlConnection))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    using (DbDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                paperSizes.Add(new int[] { Int32.Parse(reader.GetString(1).Split(';')[0]), Int32.Parse(reader.GetString(1).Split(';')[1]) });
+                            }
+                        }
+                    }
+                }
+            }
+            showPaperSizesList();
+        }
+
         private void showPaperSizesList()
         {
-            paperSizes.Add(new int[] { 9, 13 });
-            paperSizes.Add(new int[] { 10, 15 });
-            paperSizes.Add(new int[] { 11, 15 });
-            paperSizes.Add(new int[] { 13, 18 });
-            paperSizes.Add(new int[] { 15, 15 });
-            paperSizes.Add(new int[] { 15, 20 });
-            paperSizes.Add(new int[] { 15, 21 });
-            paperSizes.Add(new int[] { 15, 23 });
-            paperSizes.Add(new int[] { 20, 30 });
-            paperSizes.Add(new int[] { 20, 40 });
-            paperSizes.Add(new int[] { 20, 60 });
-            paperSizes.Add(new int[] { 21, 30 });
             for (int i = 0; i < paperSizes.Count; i++)
             {
                 Button b = new Button();
@@ -151,6 +163,7 @@ namespace PhotoTerminal
                     if ((FIO.Length > 5) && (phone.Length == 10))
                     {
                         addNewOrderToCRM(FIO, phone);
+                        makeFileForEZ();
                         dataForm.Close();
                         copyFilesToServer();
                     }
@@ -283,7 +296,7 @@ namespace PhotoTerminal
                     p14.Direction = ParameterDirection.Input;
 
                     p1.Value = custName.TrimStart();
-                    p2.Value = "Распечатать фото\n" + File.ReadAllLines(@"selectedImages.txt").Count() + "штук";
+                    p2.Value = "Распечатать фото\n" + File.ReadAllLines(@"selectedImages.txt").Count() + "штук\nФормата: " + paperSize;
                     p3.Value = "Принят";
                     p4.Value = "Печать фотографий";
                     p5.Value = "ФотоТерминал";

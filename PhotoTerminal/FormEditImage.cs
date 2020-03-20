@@ -49,10 +49,10 @@ namespace PhotoTerminal
             pictureBoxImage.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBoxImage.MouseDown += PictureBoxImage_MouseDown;
             pictureBoxImage.MouseMove += PictureBoxImage_MouseMove;
-            pictureBoxImage.Paint += pictureBox1_Paint;
+            pictureBoxImage.Paint += pictureBoxImage_Paint;
 
             pictureBoxBorders.SizeMode = PictureBoxSizeMode.Normal;
-            pictureBoxBorders.Paint += pictureBox2_Paint;
+            pictureBoxBorders.Paint += pictureBoxBorders_Paint;
 
             pictureBoxBorders.Height = pictureBoxImage.Height;
             pictureBoxBorders.Width = (pictureBoxImage.Height / Int32.Parse(paperSize.Split(';')[0]) * Int32.Parse(paperSize.Split(';')[1]));
@@ -103,7 +103,7 @@ namespace PhotoTerminal
             SizeOfImageOffset = (Size)imageBounds.Location - (Size)e.Location;
         }
 
-        private void pictureBox1_Paint(object sender, PaintEventArgs e)
+        private void pictureBoxImage_Paint(object sender, PaintEventArgs e)
         {
             if (loadedImage != null)
                 e.Graphics.DrawImage(loadedImage, imageBounds);
@@ -112,10 +112,23 @@ namespace PhotoTerminal
                 ";" + imageBounds.Width + ";" + imageBounds.Height + "\n" +
                 "bordersBounds " + (imageBounds.X - pictureBoxBorders.Location.X) + ";" + (imageBounds.Y - pictureBoxBorders.Location.Y) +
                 ";" + bordersBounds.Width + ";" + bordersBounds.Height;
+            
+            if (rotRight)
+            {
+                imageBounds.Size = new Size(imageBounds.Height, imageBounds.Width);
+                rotRight = false;
+            }
+            if (rotLeft)
+            {
+                imageBounds.Size = new Size(imageBounds.Height, imageBounds.Width);
+                rotLeft = false;
+            }
         }
 
         bool endEdit = false;
-        private void pictureBox2_Paint(object sender, PaintEventArgs e)
+        bool rotRight = false;
+        bool rotLeft = false;
+        private void pictureBoxBorders_Paint(object sender, PaintEventArgs e)
         {
             Rectangle rect = new Rectangle(imageBounds.X - pictureBoxBorders.Location.X,
                imageBounds.Y - pictureBoxBorders.Location.Y,
@@ -140,6 +153,18 @@ namespace PhotoTerminal
                 }
                 pictureBoxBorders.Image = loadedImage;
             }
+            if (rotRight)
+            {
+                loadedImage.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                rect.Size = new Size(rect.Height, rect.Width);
+                e.Graphics.DrawImage(loadedImage, rect);
+            }
+            if (rotLeft)
+            {
+                loadedImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                rect.Size = new Size(rect.Height, rect.Width);
+                e.Graphics.DrawImage(loadedImage, rect);
+            }
         }
 
         private void FormMain_SizeChanged(object sender, EventArgs e)
@@ -149,14 +174,18 @@ namespace PhotoTerminal
 
         private void buttonRotateRight_Click(object sender, EventArgs e)
         {
-            pictureBoxImage.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
-            pictureBoxImage.Refresh();
+            //pictureBoxImage.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
+            rotRight = true;
+            pictureBoxBorders.Invalidate();
+            pictureBoxImage.Invalidate();
         }
 
         private void buttonRotateLeft_Click(object sender, EventArgs e)
         {
-            pictureBoxImage.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
-            pictureBoxImage.Refresh();
+            //pictureBoxImage.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            rotLeft = true;
+            pictureBoxBorders.Invalidate();
+            pictureBoxImage.Invalidate();
         }
 
         // Private variables used to maintain the state of gestures
@@ -478,6 +507,7 @@ namespace PhotoTerminal
 
         private void button1_Click(object sender, EventArgs e)
         {
+            this.Dispose();
             this.Close();
         }
 
@@ -491,6 +521,7 @@ namespace PhotoTerminal
             {
                 file.WriteLine("cut_list\\" + fileName);
             }
+            this.Dispose();
             this.Close();
         }
     }
