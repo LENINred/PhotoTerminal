@@ -163,9 +163,9 @@ namespace PhotoTerminal
                     if ((FIO.Length > 5) && (phone.Length == 10))
                     {
                         addNewOrderToCRM(FIO, phone);
-                        makeFileForEZ();
                         dataForm.Close();
                         copyFilesToServer();
+                        makeFileForEZ();
                     }
                     else
                         MessageBox.Show("Заполните поля правильно");
@@ -177,12 +177,15 @@ namespace PhotoTerminal
             }
         }
 
+        private Font verdana10Font;
+        private StreamReader reader;
         private void copyFilesToServer()
         {
             string[] selectedFiles = File.ReadAllLines(@"selectedImages.txt");
-            foreach(string file in selectedFiles)
+            Directory.CreateDirectory(@"\\192.168.156.54\scan\order_" + orderNum);
+            foreach (string file in selectedFiles)
             {
-                File.Copy(file, "\\192.168.1.1\\folder\\order_" + orderNum + "\\"+ Path.GetFileName(file));
+                File.Copy(file, @"\\192.168.156.54\scan\order_" + orderNum + @"\"+ Path.GetFileName(file));
                 progressBarUpload.Value += 100 / selectedFiles.Count();
             }
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"check.txt", true))
@@ -192,15 +195,53 @@ namespace PhotoTerminal
                 file.WriteLine("Сумма: " + price + " р.");
             }
             PrintDocument printD = new PrintDocument();
-            printD.DocumentName = "check.txt";
+            verdana10Font = new Font("Verdana", 10);
+            printD.PrintPage += new PrintPageEventHandler(this.PrintTextFileHandler);
+            reader = new StreamReader("check.txt");
             printD.Print();
+            if (reader != null)
+                reader.Close();
             MessageBox.Show("Заказ сформирован и отправлен в работу, заберите квитанцию, пройдите для оплаты");
+        }
+
+        private void PrintTextFileHandler(object sender, PrintPageEventArgs ppeArgs)
+        {
+            //Get the Graphics object  
+            Graphics g = ppeArgs.Graphics;
+            float linesPerPage = 0;
+            float yPos = 0;
+            int count = 0;
+            //Read margins from PrintPageEventArgs  
+            float leftMargin = ppeArgs.MarginBounds.Left;
+            float topMargin = ppeArgs.MarginBounds.Top;
+            string line = null;
+            //Calculate the lines per page on the basis of the height of the page and the height of the font  
+            linesPerPage = ppeArgs.MarginBounds.Height / verdana10Font.GetHeight(g);
+            //Now read lines one by one, using StreamReader  
+            while (count < linesPerPage && ((line = reader.ReadLine()) != null))
+            {
+                //Calculate the starting position  
+                yPos = topMargin + (count * verdana10Font.GetHeight(g));
+                //Draw text  
+                g.DrawString(line, verdana10Font, Brushes.Black, leftMargin, yPos, new StringFormat());
+                //Move to next line  
+                count++;
+            }
+            //If PrintPageEventArgs has more pages to print  
+            if (line != null)
+            {
+                ppeArgs.HasMorePages = true;
+            }
+            else
+            {
+                ppeArgs.HasMorePages = false;
+            }
         }
 
         private void makeFileForEZ()
         {
             string[] selectedFiles = File.ReadAllLines(@"selectedImages.txt");
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"images("+ selectedFiles .Count()+ ").mrk", true))
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"\\192.168.156.54\scan\order_" + orderNum + "\\images(" + selectedFiles .Count()+ ").mrk", true))
             {
                 file.WriteLine("[HDR]");
                 file.WriteLine("GEN REV=01.00");
@@ -256,8 +297,12 @@ namespace PhotoTerminal
             orderNum = getLastOrderID();
             List<string> fileLines = File.ReadAllLines("snapshot.txt").ToList();
             string paperSize = fileLines.ElementAt(fileLines.IndexOf("paper_size") + 1);
-            price = getPrice(paperSize);
-            
+            string[] selectedFiles = File.ReadAllLines(@"selectedImages.txt");
+            price = getPrice(paperSize) * selectedFiles.Count();
+
+            /*if (!checkCustomerExist(custName))
+                addNewCustomer(custName, phone, "-");
+
             using (var mySqlConnection = new DBUtils().getDBConnection())
             {
                 using (var cmd = new MySqlCommand())
@@ -309,6 +354,53 @@ namespace PhotoTerminal
                     p12.Value = DateTime.Now.ToString("dd,MM,yyyy HH:mm");
                     p13.Value = "Центральный рынок";
                     p14.Value = true;
+                    mySqlConnection.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }*/
+        }
+
+        private bool checkCustomerExist(string customer)
+        {
+            using (var con = new DBUtils().getDBConnection())
+            {
+                con.Open();
+                using (var cmd = new MySqlCommand("check_customer_exist", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new MySqlParameter("@customer", MySqlDbType.VarChar));
+                    cmd.Parameters["@customer"].Value = customer;
+                    MySqlDataAdapter dap = new MySqlDataAdapter(cmd);
+                    if (cmd.ExecuteReader().HasRows)
+                    {
+                        return true;
+                    }
+                    else return false;
+                }
+            }
+        }
+
+        private void addNewCustomer(string customer, string comm, string sub_comm)
+        {
+            using (var mySqlConnection = new DBUtils().getDBConnection())
+            {
+                using (var cmd = new MySqlCommand())
+                {
+                    cmd.Connection = mySqlConnection;
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.CommandText = "add_new_customer";
+                    cmd.Parameters.Clear();
+                    MySqlParameter p1 = cmd.Parameters.Add("@customer", MySqlDbType.VarChar);
+                    p1.Direction = ParameterDirection.Input;
+                    MySqlParameter p2 = cmd.Parameters.Add("@comm", MySqlDbType.VarChar);
+                    p2.Direction = ParameterDirection.Input;
+                    MySqlParameter p3 = cmd.Parameters.Add("@sub_comm", MySqlDbType.VarChar);
+                    p3.Direction = ParameterDirection.Input;
+
+                    p1.Value = customer;
+                    p2.Value = comm;
+                    p3.Value = sub_comm;
+
                     mySqlConnection.Open();
                     cmd.ExecuteNonQuery();
                 }

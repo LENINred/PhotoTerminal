@@ -54,13 +54,13 @@ namespace PhotoTerminal
                 {
                     emptyFolder = false;
 
-                    if (!Directory.Exists("snapshot"))
-                    {
+                    //if (!Directory.Exists("snapshot"))
+                    //{
                         Directory.CreateDirectory("snapshot");
                         Directory.CreateDirectory("snapshot\\" + sDir.Split(Path.DirectorySeparatorChar).Last());
                         string photoInSnapshot = "snapshot\\" + sDir.Split(Path.DirectorySeparatorChar).Last() + "\\" + Path.GetFileName(fileName);
                         File.Copy(fileName, photoInSnapshot, true);
-                    }
+                    //}
 
                     //listImg.Add(photoInSnapshot);
 
