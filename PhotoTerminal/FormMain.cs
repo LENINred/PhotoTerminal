@@ -96,6 +96,36 @@ namespace PhotoTerminal
             }
         }
 
+        string server_ip = "";
+        private void getPhotoServerIp()
+        {
+            try
+            {
+                using (var mySqlConnection = new DBUtils().getDBConnection())
+                {
+                    mySqlConnection.Open();
+                    using (var cmd = new MySqlCommand("get_phototerminal_server_ip", mySqlConnection))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        using (DbDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    server_ip = reader.GetString(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
         List<int[]> paperSizes = new List<int[]>();
         private void loadPaperSizes()
         {
@@ -112,13 +142,14 @@ namespace PhotoTerminal
                         {
                             while (reader.Read())
                             {
-                                paperSizes.Add(new int[] { Int32.Parse(reader.GetString(1).Split(';')[0]), Int32.Parse(reader.GetString(1).Split(';')[1]) });
+                                paperSizes.Add(new int[] { Int32.Parse(reader.GetString(1).Split(';')[0]), Int32.Parse(reader.GetString(1).Split(';')[1]), Int32.Parse(reader.GetString(2)) });
                             }
                         }
                     }
                 }
             }
             showPaperSizesList();
+            getPhotoServerIp();
         }
 
         private void showPaperSizesList()
@@ -128,13 +159,14 @@ namespace PhotoTerminal
                 Button b = new Button();
                 b.Font = new Font(b.Font.FontFamily, 24);
                 b.Text = paperSizes.ElementAt(i)[0] + " x " + paperSizes.ElementAt(i)[1];
-                b.Tag = paperSizes.ElementAt(i)[0] + ";" + paperSizes.ElementAt(i)[1];
+                b.Tag = paperSizes.ElementAt(i)[0] + ";" + paperSizes.ElementAt(i)[1] + ";" + paperSizes.ElementAt(i)[2];
                 b.Size = new System.Drawing.Size(200, 80);
                 b.Click += B_Click;
                 flowLayoutPanelImageSizes.Controls.Add(b);
             }
         }
 
+        int price = 0;
         private void B_Click(object sender, EventArgs e)
         {
             flowLayoutPanelImageSizes.Dispose();
@@ -142,6 +174,7 @@ namespace PhotoTerminal
             buttonSelAll.Visible = true;
             buttonBack.Visible = true;
             buttonDoOrder.Visible = true;
+            price = Int32.Parse((((Button)sender).Tag.ToString()).Split(';')[2]);
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"snapshot.txt", true))
             {
                 file.WriteLine("paper_size");
@@ -182,10 +215,10 @@ namespace PhotoTerminal
         private void copyFilesToServer()
         {
             string[] selectedFiles = File.ReadAllLines(@"selectedImages.txt");
-            Directory.CreateDirectory(@"\\192.168.156.54\scan\order_" + orderNum);
+            Directory.CreateDirectory("\\\\ " + server_ip + " \\scan\\order_" + orderNum);
             foreach (string file in selectedFiles)
             {
-                File.Copy(file, @"\\192.168.156.54\scan\order_" + orderNum + @"\"+ Path.GetFileName(file));
+                File.Copy(file, "\\\\ " + server_ip + @" \\scan\\order_" + orderNum + "\\"+ Path.GetFileName(file));
                 progressBarUpload.Value += 100 / selectedFiles.Count();
             }
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"check.txt", true))
@@ -233,12 +266,12 @@ namespace PhotoTerminal
         private void makeFileForEZ()
         {
             string[] selectedFiles = File.ReadAllLines(@"selectedImages.txt");
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"\\192.168.156.54\scan\order_" + orderNum + "\\images(" + selectedFiles .Count()+ ").mrk", true))
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter("\\\\ " + server_ip + " \\scan\\order_" + orderNum + "\\images(" + selectedFiles .Count()+ ").mrk", true))
             {
                 file.WriteLine("[HDR]");
                 file.WriteLine("GEN REV=01.00");
                 file.WriteLine("GEN CRT=\"Reciever\"");
-                file.WriteLine("GEN DTM=" + DateTime.Now.ToString("yyyy’:‘MM’:‘dd’T’HH’:’mm’:’ss"));
+                file.WriteLine("GEN DTM=" + DateTime.Now.ToString("yyyy:MM:dd|T|HH:mm:ss"));
                 file.WriteLine();
                 foreach (string image in selectedFiles)
                 {
@@ -250,47 +283,13 @@ namespace PhotoTerminal
             }
         }
 
-        private int getPrice(string paperSize)
-        {
-            switch (paperSize)
-            {
-                case "10;15":
-                    return 12;
-                case "11;15":
-                    return 13;
-                case "13;18":
-                    return 16;
-                case "15;15":
-                    return 18;
-                case "15;20":
-                    return 23;
-                case "15;21":
-                    return 24;
-                case "15;23":
-                    return 26;
-                case "20;30":
-                    return 55;
-                case "20;40":
-                    return 70;
-                case "20;60":
-                    return 90;
-                case "21;30":
-                    return 55;
-                case "9;13":
-                    return 13;
-                default:
-                    return 25;
-            }
-        }
-
-        int price;
         private void addNewOrderToCRM(string custName, string phone)
         {
             orderNum = getLastOrderID();
             List<string> fileLines = File.ReadAllLines("snapshot.txt").ToList();
             string paperSize = fileLines.ElementAt(fileLines.IndexOf("paper_size") + 1);
             string[] selectedFiles = File.ReadAllLines(@"selectedImages.txt");
-            price = getPrice(paperSize) * selectedFiles.Count();
+            price *= selectedFiles.Count();
 
             /*if (!checkCustomerExist(custName))
                 addNewCustomer(custName, phone, "-");
