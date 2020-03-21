@@ -28,9 +28,7 @@ namespace PhotoTerminal
                 var lines = File.ReadAllLines("snapshot.txt");
 
 
-                ImageFolders imageFolders = new ImageFolders(this, "snapshot");
-                buttonSelAll.Click += ButtonSelAll_Click;
-                buttonDeSelAll.Click += ButtonDeSelAll_Click;
+                
 
                 if (File.Exists("selectedImages.txt"))
                 {
@@ -42,6 +40,10 @@ namespace PhotoTerminal
                     buttonDoOrder.Enabled = true;
                     buttonCancelOrder.Visible = true;
                     buttonDoOrder.Text = "Оформить заказ\n" + File.ReadAllLines("selectedImages.txt").Count() + " фото";
+
+                    ImageFolders imageFolders = new ImageFolders(this, "snapshot");
+                    buttonSelAll.Click += ButtonSelAll_Click;
+                    buttonDeSelAll.Click += ButtonDeSelAll_Click;
                 }
             }
         }
