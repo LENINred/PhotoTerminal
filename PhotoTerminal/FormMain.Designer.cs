@@ -77,6 +77,7 @@
             this.buttonCancelOrder.Text = "Отменить заказ";
             this.buttonCancelOrder.UseVisualStyleBackColor = true;
             this.buttonCancelOrder.Visible = false;
+            this.buttonCancelOrder.Click += new System.EventHandler(this.buttonCancelOrder_Click);
             // 
             // buttonSelAll
             // 
@@ -116,6 +117,7 @@
             // buttonDoOrder
             // 
             this.buttonDoOrder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.buttonDoOrder.Enabled = false;
             this.buttonDoOrder.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.buttonDoOrder.Location = new System.Drawing.Point(540, 620);
             this.buttonDoOrder.Name = "buttonDoOrder";
@@ -170,6 +172,7 @@
             this.Controls.Add(this.flowLayoutPanelImageSizes);
             this.Name = "FormMain";
             this.Text = "PhotoTerminal";
+            this.Load += new System.EventHandler(this.FormMain_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

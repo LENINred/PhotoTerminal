@@ -45,17 +45,6 @@ namespace PhotoTerminal
             bool emptyFolder = true;
             var files = Directory.EnumerateFiles(sDir, "*.*");
 
-            /*string ss = "";
-            foreach(string s in files)
-            {
-                if ((s.ToLower().Contains(".jpg")) || (s.ToLower().Contains(".tiff")) || (s.ToLower().Contains(".raw")) || (s.ToLower().Contains(".bmp")))
-                {
-                    ss += s + "\n";
-                }
-            }
-            if(ss != "")
-                MessageBox.Show(ss);*/
-
             int j = 0;
             foreach (string fileName in files)
             {
@@ -73,15 +62,7 @@ namespace PhotoTerminal
 
                     if (j < 3)
                     {
-                        try
-                        {
-                            Image thmb = Image.FromFile(fileName).GetThumbnailImage(128, 128, null, new IntPtr(0));
-                            cacheImageList.Add(thmb);
-                        }
-                        catch (OutOfMemoryException)
-                        {
-                            Debug.Print(fileName);
-                        }
+                        cacheImageList.Add(Image.FromFile(fileName).GetThumbnailImage(128, 128, null, new IntPtr(0)));
                         j++;
                     }
                 }
@@ -102,15 +83,13 @@ namespace PhotoTerminal
         {
             PictureBox picture = new PictureBox();
             picture.BackgroundImageLayout = ImageLayout.Stretch;
-            Bitmap source1 = new Bitmap(Properties.Resources.Folder);
+            Bitmap folderImg = new Bitmap(Properties.Resources.Folder);
 
-            picture.Height = source1.Height;
-            picture.Width = source1.Width;
+            picture.Height = folderImg.Height;
+            picture.Width = folderImg.Width;
             picture.Tag = neededFolders[neededFolders.Count - 1];
 
-            //MessageBox.Show(picture.Tag.ToString() + ";" + cacheImageList.Count());
-
-            using (Graphics grfx = Graphics.FromImage(source1))
+            using (Graphics grfx = Graphics.FromImage(folderImg))
             {
                 grfx.DrawString(neededFolders[neededFolders.Count - 1].Split('\\')[neededFolders[neededFolders.Count - 1].Split('\\').Count() - 1], new Font("Arial", 12), new SolidBrush(Color.Black), new Point(128, 32));
                 grfx.CompositingMode = CompositingMode.SourceOver;
@@ -123,7 +102,7 @@ namespace PhotoTerminal
                 }
             }
 
-            picture.Image = source1;
+            picture.Image = folderImg;
             picture.MouseUp += Picture_MouseUp;
             layoutPanel.Controls.Add(picture);
         }

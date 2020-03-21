@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace PhotoTerminal
 {
-    partial class FolderImages : FormMain
+    class FolderImages
     {
         FlowLayoutPanel layoutPanel;
         Form formMain;
@@ -27,6 +27,7 @@ namespace PhotoTerminal
             layoutPanel.BringToFront();
 
             Button buttonSelAll = (Button)formMain.Controls.Find("buttonSelAll", true)[0];
+            buttonSelAll.Click += null;
             buttonSelAll.Click += ButtonSelAll_Click;
             Button buttonDeSelAll = (Button)formMain.Controls.Find("buttonDeSelAll", true)[0];
             buttonDeSelAll.Click += ButtonDeSelAll_Click;
@@ -45,6 +46,10 @@ namespace PhotoTerminal
 
         private void ButtonBack_Click(object sender, EventArgs e)
         {
+            foreach(Control cont in layoutPanel.Controls)
+            {
+                ((PictureBox)cont).Image.Dispose();
+            }
             formMain.Controls.RemoveByKey("layoutPanelImages");
         }
 
@@ -52,7 +57,7 @@ namespace PhotoTerminal
         {
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"selectedImages.txt", true))
             {
-                foreach (string line in imagesInFolder.Keys)
+                foreach (string line in selectedImages)
                 {
                     file.WriteLine(line);
                 }
@@ -62,14 +67,16 @@ namespace PhotoTerminal
                 file.WriteLine("selected_folder");
                 file.WriteLine(selFolder);
             }
+            ((Button)formMain.Controls.Find("buttonDoOrder", true)[0]).Text = "Оформить заказ\n" + File.ReadAllLines("selectedImages.txt").Count() + " фото";
+            ((Button)formMain.Controls.Find("buttonDoOrder", true)[0]).Enabled = true;
         }
 
         private void ButtonDeSelAll_Click(object sender, System.EventArgs e)
         {
             string filePath = @"selectedImages.txt";
             List<string> fileLines = File.ReadAllLines(filePath).ToList();
-            foreach (string key in imagesInFolder.Keys)
-                {
+            foreach (string key in selectedImages)
+            {
                 for (int i = 0; i < fileLines.Count(); i++)
                 {
                     if (fileLines[i] == key)
@@ -85,7 +92,7 @@ namespace PhotoTerminal
                 if (fileLines[i] == selFolder)
                     fileLines.RemoveAt(i);
             }
-            foreach (string key in imagesInFolder.Keys)
+            foreach (string key in selectedImages)
             {
                 for (int i = 0; i < fileLines.Count(); i++)
                 {
@@ -94,9 +101,9 @@ namespace PhotoTerminal
                 }
             }
             File.WriteAllLines(filePath, fileLines);
+            ((Button)formMain.Controls.Find("buttonDoOrder",true)[0]).Text = "Оформить заказ\n" + File.ReadAllLines("selectedImages.txt").Count() + " фото";
         }
 
-        Dictionary<string, Image> imagesInFolder = new Dictionary<string, Image>();
         List<string> selectedImages = new List<string>();
         string selFolder = "";
         public void showImages(string path)
@@ -111,7 +118,7 @@ namespace PhotoTerminal
                     picture.BackgroundImageLayout = ImageLayout.Zoom;
 
                     Image image = Image.FromFile(fileName);
-                    imagesInFolder.Add(fileName, image);
+                    selectedImages.Add(fileName);
 
                     picture.Height = image.Height;
                     picture.Width = image.Width;
@@ -169,8 +176,10 @@ namespace PhotoTerminal
         {
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"selectedImages.txt", true))
             {
-                file.WriteLine(imagesInFolder.Keys.ElementAt(index));
+                file.WriteLine(selectedImages.ElementAt(index));
             }
+            ((Button)formMain.Controls.Find("buttonDoOrder", true)[0]).Enabled = true;
+            ((Button)formMain.Controls.Find("buttonDoOrder", true)[0]).Text = "Оформить заказ\n" + File.ReadAllLines("selectedImages.txt").Count() + " фото";
         }
     }
 }

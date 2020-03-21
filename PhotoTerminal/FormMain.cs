@@ -21,6 +21,31 @@ namespace PhotoTerminal
             UsbNotification.RegisterUsbDeviceNotification(this.Handle);
         }
 
+        private void FormMain_Load(object sender, EventArgs e)
+        {
+            if (File.Exists("snapshot.txt"))
+            {
+                var lines = File.ReadAllLines("snapshot.txt");
+
+
+                ImageFolders imageFolders = new ImageFolders(this, "snapshot");
+                buttonSelAll.Click += ButtonSelAll_Click;
+                buttonDeSelAll.Click += ButtonDeSelAll_Click;
+
+                if (File.Exists("selectedImages.txt"))
+                {
+                    flowLayoutPanelImageSizes.Dispose();
+                    buttonDeSelAll.Visible = true;
+                    buttonSelAll.Visible = true;
+                    buttonBack.Visible = true;
+                    buttonDoOrder.Visible = true;
+                    buttonDoOrder.Enabled = true;
+                    buttonCancelOrder.Visible = true;
+                    buttonDoOrder.Text = "Оформить заказ\n" + File.ReadAllLines("selectedImages.txt").Count() + " фото";
+                }
+            }
+        }
+
         protected override void WndProc(ref Message m)
         {
             base.WndProc(ref m);
@@ -181,6 +206,36 @@ namespace PhotoTerminal
                 file.WriteLine(((Button)sender).Tag.ToString());
             }
             ImageFolders imageFolders = new ImageFolders(this, letter);
+            buttonSelAll.Click += ButtonSelAll_Click;
+            buttonDeSelAll.Click += ButtonDeSelAll_Click;
+
+            if (File.Exists("selectedImages.txt"))
+            {
+                buttonDoOrder.Enabled = true;
+                buttonDoOrder.Text = "Оформить заказ\n" + File.ReadAllLines("selectedImages.txt").Count() + " фото";
+            }
+        }
+
+        private void ButtonDeSelAll_Click(object sender, EventArgs e)
+        {
+            File.Delete("selectedImages.txt");
+            buttonDoOrder.Text = "Оформить заказ";
+            buttonDoOrder.Enabled = false;
+        }
+
+        private void ButtonSelAll_Click(object sender, EventArgs e)
+        {
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"selectedImages.txt", true))
+            {
+                var files = Directory.EnumerateFiles("snapshot", "*.*");
+                MessageBox.Show(files.Count().ToString());
+                foreach (string img in files)
+                {
+                    file.WriteLine(img);
+                }
+            }
+            buttonDoOrder.Text = "Оформить заказ\n" + File.ReadAllLines("selectedImages.txt").Count() + " фото";
+            buttonDoOrder.Enabled = true;
         }
 
         string FIO = "", phone = "";
@@ -223,6 +278,7 @@ namespace PhotoTerminal
             }
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"check.txt", true))
             {
+                file.WriteLine("Номер заказа: " + orderNum);
                 file.WriteLine("Фамилия: " + FIO);
                 file.WriteLine("Номер телефона: " + phone);
                 file.WriteLine("Сумма: " + price + " р.");
@@ -396,6 +452,18 @@ namespace PhotoTerminal
                     cmd.ExecuteNonQuery();
                 }
             }
+        }
+
+        private void buttonCancelOrder_Click(object sender, EventArgs e)
+        {
+            File.Delete("snapshot.txt");
+            File.Delete("selectedImages.txt");
+            this.Close();
+            if(Directory.Exists("snapshot"))
+                Directory.Delete("snapshot", true);
+            if (Directory.Exists("cut_list"))
+                Directory.Delete("cut_list", true);
+            Application.Restart();
         }
 
         private int getLastOrderID()
