@@ -140,6 +140,7 @@
             // 
             // flowLayoutPanelImageSizes
             // 
+            this.flowLayoutPanelImageSizes.AutoScroll = true;
             this.flowLayoutPanelImageSizes.Location = new System.Drawing.Point(287, 12);
             this.flowLayoutPanelImageSizes.Name = "flowLayoutPanelImageSizes";
             this.flowLayoutPanelImageSizes.Size = new System.Drawing.Size(450, 705);

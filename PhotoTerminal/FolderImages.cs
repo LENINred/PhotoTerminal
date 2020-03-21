@@ -14,7 +14,18 @@ namespace PhotoTerminal
         public FolderImages(Form _formMain, FlowLayoutPanel _layoutPanel)
         {
             formMain = _formMain;
-            layoutPanel = _layoutPanel;
+
+            layoutPanel = new FlowLayoutPanel();
+            layoutPanel.Name = "layoutPanelImages";
+            layoutPanel.BackColor = Color.White;
+            layoutPanel.AutoScroll = true;
+            formMain.Controls.Add(layoutPanel);
+            layoutPanel.Location = new Point(0, 0);
+            layoutPanel.Size = new Size(formMain.Width, formMain.Height - 160);
+            formMain.SizeChanged += FormMain_SizeChanged;
+            layoutPanel.BorderStyle = BorderStyle.FixedSingle;
+            layoutPanel.BringToFront();
+
             Button buttonSelAll = (Button)formMain.Controls.Find("buttonSelAll", true)[0];
             buttonSelAll.Click += ButtonSelAll_Click;
             Button buttonDeSelAll = (Button)formMain.Controls.Find("buttonDeSelAll", true)[0];
@@ -27,12 +38,14 @@ namespace PhotoTerminal
             buttonBack.Click += ButtonBack_Click;
         }
 
+        private void FormMain_SizeChanged(object sender, EventArgs e)
+        {
+            layoutPanel.Size = new Size(formMain.Width, formMain.Height - 160);
+        }
+
         private void ButtonBack_Click(object sender, EventArgs e)
         {
-            imagesInFolder.Clear();
-            layoutPanel.Controls.Clear();
-            ImageFolders imageFolders = new ImageFolders(formMain, "snapshot");
-            this.Dispose();
+            formMain.Controls.RemoveByKey("layoutPanelImages");
         }
 
         private void ButtonSelAll_Click(object sender, System.EventArgs e)
