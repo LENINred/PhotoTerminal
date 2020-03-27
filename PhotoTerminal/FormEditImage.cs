@@ -23,7 +23,7 @@ namespace PhotoTerminal
         public FormEditImage(Image image, string _fileName)
         {
             InitializeComponent();
-            SetupStructSizes();
+            //SetupStructSizes();
             loadedImage = image;
             fileName = _fileName;
         }
@@ -144,14 +144,32 @@ namespace PhotoTerminal
                     pictureBoxBorders.Height * (loadedImage.Height / imageBounds.Height));
                 Bitmap objBitmap = new Bitmap(pictureBoxBorders.Width * (loadedImage.Width / imageBounds.Width),
                     pictureBoxBorders.Height * (loadedImage.Height / imageBounds.Height));
+                var filesList = Directory.GetFiles("cut_list\\");
+                string k = "0";
+                for (int i = 0; i < filesList.Count(); i++)
+                {
+                    
+                    MessageBox.Show(Path.GetFileName(filesList[i]).Split('@')[0] + Path.GetExtension(filesList[i]) + ";;;;" + fileName);
+                    if (Path.GetFileName(filesList[i]).Split('@')[0] + Path.GetExtension(filesList[i]) == fileName)
+                    {
+                        k = (int.Parse(Path.GetFileNameWithoutExtension(filesList[i]).Split('@')[1]) + 1) + "";
+                    }
+                }
                 using (Graphics objGraphics = Graphics.FromImage(objBitmap))
                 {
                     objGraphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                     objGraphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                     objGraphics.DrawImage(loadedImage, new Rectangle(0, 0, rect0.Width, rect0.Height), rect0, GraphicsUnit.Pixel);
-                    objBitmap.Save("cut_list\\" + fileName, ImageFormat.Png);
+                    objBitmap.Save("cut_list\\" + Path.GetFileNameWithoutExtension(fileName) + "@" + k + Path.GetExtension(fileName), ImageFormat.Png);
                 }
                 pictureBoxBorders.Image = loadedImage;
+                loadedImage = null;
+                imageBounds = new Rectangle(); // current position of image
+                bordersBounds = new Rectangle();
+                SizeOfImageOffset = new Size(); // offset of image relative to mouse while moving
+                imageClicked = false;
+                this.Dispose();
+                this.Close();
             }
             if (rotRight)
             {
@@ -507,6 +525,11 @@ namespace PhotoTerminal
 
         private void button1_Click(object sender, EventArgs e)
         {
+            loadedImage = null;
+            imageBounds = new Rectangle(); // current position of image
+            bordersBounds = new Rectangle();
+            SizeOfImageOffset = new Size(); // offset of image relative to mouse while moving
+            imageClicked = false;
             this.Dispose();
             this.Close();
         }
@@ -516,13 +539,6 @@ namespace PhotoTerminal
             Directory.CreateDirectory("cut_list");
             endEdit = true;
             pictureBoxBorders.Refresh();
-
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"selectedImages.txt", true))
-            {
-                file.WriteLine("cut_list\\" + fileName);
-            }
-            this.Dispose();
-            this.Close();
         }
     }
 }

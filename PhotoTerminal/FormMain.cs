@@ -27,9 +27,6 @@ namespace PhotoTerminal
             {
                 var lines = File.ReadAllLines("snapshot.txt");
 
-
-                
-
                 if (File.Exists("selectedImages.txt"))
                 {
                     flowLayoutPanelImageSizes.Dispose();
@@ -40,11 +37,14 @@ namespace PhotoTerminal
                     buttonDoOrder.Enabled = true;
                     buttonCancelOrder.Visible = true;
                     buttonDoOrder.Text = "Оформить заказ\n" + File.ReadAllLines("selectedImages.txt").Count() + " фото";
-
+                    loadPaperSizes(true);
                     ImageFolders imageFolders = new ImageFolders(this, "snapshot");
                     buttonSelAll.Click += ButtonSelAll_Click;
                     buttonDeSelAll.Click += ButtonDeSelAll_Click;
+                    
                 }
+                else
+                    File.Delete("snapshot.txt");
             }
         }
 
@@ -102,7 +102,7 @@ namespace PhotoTerminal
             buttonGlanPaper.Visible = false;
             buttonMatPaper.Visible = false;
             labelPaperType.Visible = false;
-            loadPaperSizes();
+            loadPaperSizes(false);
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"snapshot.txt"))
             {
                 file.WriteLine("paper_type");
@@ -115,7 +115,7 @@ namespace PhotoTerminal
             buttonGlanPaper.Visible = false;
             buttonMatPaper.Visible = false;
             labelPaperType.Visible = false;
-            loadPaperSizes();
+            loadPaperSizes(false);
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"snapshot.txt"))
             {
                 file.WriteLine("paper_type");
@@ -154,7 +154,7 @@ namespace PhotoTerminal
         }
 
         List<int[]> paperSizes = new List<int[]>();
-        private void loadPaperSizes()
+        private void loadPaperSizes(bool snapshot)
         {
             DataTable tblOrders = new DataTable();
             using (var mySqlConnection = new DBUtils().getDBConnection())
@@ -175,7 +175,8 @@ namespace PhotoTerminal
                     }
                 }
             }
-            showPaperSizesList();
+            if(!snapshot)
+                showPaperSizesList();
             getPhotoServerIp();
         }
 
